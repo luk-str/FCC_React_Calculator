@@ -19,21 +19,14 @@ class App extends React.Component {
 
   handleNumberClick(e) {
     let valueArray = this.state.currentValues;
-    let clickedValue = e.target.textContent;
-    let lastPosition = valueArray[valueArray.length - 1];
-    let secondLastPosition = valueArray[valueArray.length - 2];
+    const clickedValue = e.target.textContent;
+    const lastIndex = valueArray.length - 1;
+    const lastPosition = valueArray[lastIndex];
 
-    if (!isNaN(lastPosition) && lastPosition !== "0") {
-      valueArray[valueArray.length - 1] = lastPosition + clickedValue;
-    } else if (lastPosition === ".") {
-      if (!isNaN(secondLastPosition)) {
-        valueArray.length = valueArray.length - 2;
-        valueArray.push(`${secondLastPosition}.${clickedValue}`);
-      } else {
-        valueArray[valueArray.length - 1] = `0.${clickedValue}`;
-      }
-    } else if (lastPosition !== "0") {
+    if (valueArray.length === 0 || isNaN(lastPosition)) {
       valueArray.push(clickedValue);
+    } else if (!(lastPosition === "0" && clickedValue === "0")) {
+      valueArray[lastIndex] += clickedValue;
     }
 
     this.setState({ currentValues: valueArray });
@@ -43,24 +36,34 @@ class App extends React.Component {
 
   handleFunctionClick(e) {
     let valueArray = this.state.currentValues;
-    let clickedValue = e.target.textContent;
-    let lastPosition = valueArray[valueArray.length - 1];
-    let isLastPositionNumber = !isNaN(lastPosition);
+    const clickedValue = e.target.textContent;
+    const lastPosition = valueArray[valueArray.length - 1];
+    const lastIndex = valueArray.length - 1;
+    const isLastPositionNumber = !isNaN(lastPosition);
 
-    if (
-      valueArray.length !== 0 &&
-      isLastPositionNumber &&
-      clickedValue === "="
-    ) {
-      // WYNIK
-      let result = eval(valueArray.join(""));
-      valueArray = [result];
-    } else if (valueArray.length !== 0 && isLastPositionNumber) {
-      valueArray.push(clickedValue);
-    } else if (clickedValue === "." && lastPosition !== ".") {
-      valueArray.push(clickedValue);
-    } else if (!isLastPositionNumber) {
-      valueArray[valueArray.length - 1] = clickedValue;
+    switch (clickedValue) {
+      case "=":
+        if (valueArray.length !== 0 && isLastPositionNumber) {
+          let result = eval(valueArray.join(""));
+          valueArray.length = 0;
+          valueArray[0] = result.toString();
+        }
+        break;
+      case ".":
+        if (valueArray.length === 0 || isNaN(lastPosition)) {
+          valueArray.push("0.");
+        } else if (!lastPosition.includes(".")) {
+          valueArray[lastIndex] += ".";
+        }
+        break;
+      default:
+        if (isLastPositionNumber) {
+          if (valueArray.length !== 0) {
+            valueArray.push(clickedValue);
+          }
+        } else {
+          valueArray[lastIndex] = clickedValue;
+        }
     }
 
     this.setState({ currentValues: valueArray });
@@ -68,10 +71,10 @@ class App extends React.Component {
     console.log(this.state.currentValues);
   }
 
-  /// RENDER METHOD ///
-
   render() {
     const currentValues = this.state.currentValues;
+    const lastPosition = currentValues[currentValues.length - 1];
+    const secondLastPosition = currentValues[currentValues.length - 2];
 
     return (
       <main>
@@ -83,7 +86,11 @@ class App extends React.Component {
         </p>
 
         <h1 id="display">
-          {currentValues.length > 0 ? currentValues.join(" ") : 0}
+          {currentValues.length > 0
+            ? isNaN(lastPosition)
+              ? secondLastPosition.slice(0, 15)
+              : lastPosition.slice(0, 15)
+            : 0}
         </h1>
 
         <button id="clear" onClick={this.allClear}>
