@@ -24,7 +24,9 @@ class App extends React.Component {
     const lastPosition = valueArray[lastIndex];
 
     if (valueArray.length === 0 || isNaN(lastPosition)) {
-      valueArray.push(clickedValue);
+      if (clickedValue !== "0") {
+        valueArray.push(clickedValue);
+      }
     } else if (!(lastPosition === "0" && clickedValue === "0")) {
       valueArray[lastIndex] += clickedValue;
     }
@@ -38,6 +40,7 @@ class App extends React.Component {
     let valueArray = this.state.currentValues;
     const clickedValue = e.target.textContent;
     const lastPosition = valueArray[valueArray.length - 1];
+    const secondLastPosition = valueArray[valueArray.length - 2];
     const lastIndex = valueArray.length - 1;
     const isLastPositionNumber = !isNaN(lastPosition);
 
@@ -56,13 +59,23 @@ class App extends React.Component {
           valueArray[lastIndex] += ".";
         }
         break;
+      case "-":
+        if (valueArray.length === 0) {
+          valueArray.push("0", clickedValue);
+        } else if (lastPosition !== "-") {
+          valueArray.push(clickedValue);
+        }
+        break;
       default:
         if (isLastPositionNumber) {
-          if (valueArray.length !== 0) {
+          valueArray.push(clickedValue);
+        } else if (valueArray.length !== 0) {
+          if (isNaN(secondLastPosition)) {
+            valueArray.length -= 2;
             valueArray.push(clickedValue);
+          } else {
+            valueArray[lastIndex] = clickedValue;
           }
-        } else {
-          valueArray[lastIndex] = clickedValue;
         }
     }
 
@@ -88,8 +101,8 @@ class App extends React.Component {
         <h1 id="display">
           {currentValues.length > 0
             ? isNaN(lastPosition)
-              ? secondLastPosition.slice(0, 15)
-              : lastPosition.slice(0, 15)
+              ? secondLastPosition.slice(0, 16)
+              : lastPosition.slice(0, 16)
             : 0}
         </h1>
 
